@@ -1,0 +1,6 @@
+bottle
+selenium
+redis
+hiredis
+uwsgi
+gevent

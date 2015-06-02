@@ -1,0 +1,28 @@
+hub:
+  image: selenium/hub
+  ports:
+    - "4444:4444"
+#firefox:
+#  image: selenium/node-firefox
+#  links:
+#    - hub
+chrome:
+  image: selenium/node-chrome
+  links:
+    - hub
+
+redis:
+  image: redis:2.8.20
+  ports:
+    - "6379:6379"
+
+web:
+  build: ./web
+
+  links:
+    - redis:redis
+    - hub:hub
+
+  ports:
+    - "8080:8080"
+
