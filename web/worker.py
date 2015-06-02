@@ -2,15 +2,25 @@ from redis import StrictRedis
 from browser import ChromeBrowser
 
 import json
+import sys
+import uwsgi
+import time
 
 from handlers import WebRecorderHandler, SavePageNowHandler
 
+
+def get_host_for_id():
+    mule_id = uwsgi.mule_id()
+    host = 'chrome{0}_1'.format(mule_id)
+    return host
+
 def init_browser():
     print('WebDriver Started')
-    browser = ChromeBrowser()
 
-#    handler = SavePageNowHandler()
-    handler = WebRecorderHandler()
+    browser = ChromeBrowser(get_host_for_id(), True)
+
+    handler = SavePageNowHandler()
+    #handler = WebRecorderHandler()
 
     rc = StrictRedis.from_url('redis://redis_1/2')
     while True:
@@ -20,7 +30,9 @@ def init_browser():
 
         try:
             url = cmd[1]
+
             result = handler(browser, url)
+
             json_result = json.dumps(result)
             actual_url = result.get('actual_url')
 

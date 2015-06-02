@@ -7,15 +7,22 @@ import json
 
 # ============================================================================
 class ChromeBrowser(object):
-    def __init__(self):
+    def __init__(self, host_name=None, readlog=False):
         caps = DesiredCapabilities.CHROME
-        #caps['loggingPrefs'] = {'performance': 'ALL'}
-        #caps['chromeOptions'] = {'perfLoggingPrefs': {'enableTimeline': False, 'enablePage': False}}
-        self.caps = caps
 
-        #self.driver = Chrome(chrome_options=Options(), desired_capabilities=caps)
-        self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format('hub_1'),
-                             desired_capabilities=caps)
+        if readlog:
+            caps['loggingPrefs'] = {'performance': 'ALL'}
+            caps['chromeOptions'] = {'perfLoggingPrefs': {'enableTimeline': False, 'enablePage': False}}
+
+        self.caps = caps
+        self.readlog = readlog
+
+        if not host_name:
+            self.driver = Chrome(chrome_options=Options(), desired_capabilities=caps)
+        else:
+            self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format(host_name),
+                                 desired_capabilities=caps)
+
 
     def visit(self, url):
         self.driver.start_session(self.caps)
@@ -23,9 +30,13 @@ class ChromeBrowser(object):
 
         results = {}
 
+        if not self.readlog:
+            return results
+
         try:
             log = self.driver.get_log('performance')
-        except:
+        except Exception as e:
+            print(e)
             return results
 
         for entry in log:
@@ -44,6 +55,7 @@ class ChromeBrowser(object):
             except:
                 continue
 
+        print(results)
         return results
 
 

@@ -30,7 +30,7 @@ class PrefixHandler(object):
             results['archived'] = True
             results['actual_url'] = self.get_actual_url(browser)
 
-        #results['log'] = log_results
+        results['log'] = log_results
         return results
 
     def get_error(self, log_results, browser, url):

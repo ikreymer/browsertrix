@@ -4,6 +4,7 @@ from redis import StrictRedis
 
 import json
 import uwsgi
+import os
 
 application = None
 
@@ -14,8 +15,15 @@ def init():
 
 WAITING_STR = json.dumps({'queued': True, 'archived': False})
 
-@route('/:arc/<:re:.+>')
-def archive_url(arc):
+
+@route('/env')
+def theenv():
+    env = dict(os.environ)
+    return env
+
+
+@route('/archive/<:re:.+>')
+def archive_url(*args):
     request.path_shift()
     url = request.environ.get('PATH_INFO')[1:]
     if not url.startswith(('http://', 'https://')):

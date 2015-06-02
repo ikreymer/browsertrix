@@ -1,27 +1,45 @@
-hub:
-  image: selenium/hub
-  ports:
-    - "4444:4444"
+#hub:
+#  image: selenium/hub
+#  ports:
+#    - "4444:4444"
 #firefox:
 #  image: selenium/node-firefox
 #  links:
 #    - hub
-chrome:
-  image: selenium/node-chrome
-  links:
-    - hub
+
+chrome1:
+  restart: always
+  image: selenium/standalone-chrome
+
+chrome2:
+  restart: always
+  image: selenium/standalone-chrome
+
+chrome3:
+  restart: always
+  image: selenium/standalone-chrome
+
+chrome4:
+  restart: always
+  image: selenium/standalone-chrome
 
 redis:
+  restart: always
   image: redis:2.8.20
   ports:
     - "6379:6379"
 
 web:
+  restart: always
   build: ./web
 
   links:
     - redis:redis
-    - hub:hub
+#    - hub:hub
+    - chrome1:chrome1
+    - chrome2:chrome2
+    - chrome3:chrome3
+    - chrome4:chrome4
 
   ports:
     - "8080:8080"
