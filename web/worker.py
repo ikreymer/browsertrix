@@ -4,48 +4,99 @@ from browser import ChromeBrowser
 import json
 import sys
 import uwsgi
-import time
+import logging
 
-from handlers import WebRecorderHandler, SavePageNowHandler
+from config import get_config
 
 
-def get_host_for_id():
+def init_browser(config):
+    """ Initialize the webdriver browser driver
+    Currently, supporting chrome only
+    TODO: add firefox as well
+    """
     mule_id = uwsgi.mule_id()
-    host = 'chrome{0}_1'.format(mule_id)
-    return host
+    host = config.get('chrome_host').format(mule_id)
+    browser = ChromeBrowser(host, config.get('chrome_url_log', False))
+    return browser
 
-def init_browser():
-    print('WebDriver Started')
 
-    browser = ChromeBrowser(get_host_for_id(), True)
+def get_cache_key(name, url):
+    """ Return redis key for given url and cache"""
+    return 'r:' + name + ':' + url
 
-    handler = SavePageNowHandler()
-    #handler = WebRecorderHandler()
 
-    rc = StrictRedis.from_url('redis://redis_1/2')
+def init_redis(config):
+    """ Init redis from config, with fallback to localhost
+    """
+    try:
+        rc = StrictRedis.from_url(config['redis_url'])
+        rc.ping()
+    except:
+        rc = StrictRedis.from_url('redis://localhost/2')
+        rc.ping()
+
+    return rc
+
+
+def init():
+    """ Initialize the uwsgi worker which will read urls to archive from redis queue
+    and use associated web driver to connect to remote web browser
+    """
+    logging.basicConfig(level=logging.DEBUG)
+    logging.debug('WebDriver Worker Started')
+
+    config = get_config()
+
+    handlers = config['handlers']
+
+    rc = init_redis(config)
+    browser = None
+
+    try:
+        browser = init_browser(config)
+        run(rc, browser, handlers, config)
+    finally:
+        if browser:
+            try:
+                browser.close()
+            except:
+                pass
+
+
+def run(rc, browser, handlers, config):
+    """ Read from redis queue in a loop and use associated web driver
+    to load page on demand
+    """
+    url = None
     while True:
-        cmd = rc.brpop('q:urls', 10)
-        if not cmd:
-            continue
-
         try:
-            url = cmd[1]
+            cmd = rc.brpop('q:urls', 10)
 
-            result = handler(browser, url)
+            if not cmd:
+                continue
+
+            name, url = cmd[1].split(' ')
+
+            result = handlers[name](browser, url)
 
             json_result = json.dumps(result)
             actual_url = result.get('actual_url')
 
             if actual_url and actual_url != url:
-                rc.lpush('r:' + actual_url, json_result)
-                rc.expire('r:' + actual_url, 600)
+                actual_key = get_cache_key(name, actual_url)
+                rc.lpush(actual_key, json_result)
+                rc.expire(actual_key, config['archive_cache_secs'])
 
-            rc.lpush('r:' + url, json_result)
-            rc.expire('r:' + url, 600)
+            url_key = get_cache_key(name, url)
+            rc.lpush(url_key, json_result)
+            rc.expire(url_key, config['archive_cache_secs'])
         except Exception as e:
             print(e)
-            rc.delete('r:' + url)
+            if url:
+                rc.delete('r:' + url)
+
+
 
 if __name__ == "__main__":
-    init_browser()
+    init()
 

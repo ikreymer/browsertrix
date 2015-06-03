@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    @import url("//d2v52k3cl9vedd.cloudfront.net/basscss/4.1.7/basscss.min.css");
+    body { margin-top: 5%; margin-left: 0px; font-family: "myriad-pro", sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="sm-col-12 full-width block">
+<h2 class="mx-auto sm-col-4">Archive This Page</h2>
+
+<form class="sm-col-4 h5 mx-auto" method="get" action="archivepage" onsubmit="var url = document.getElementById('url').value; if (url == '') { return false; }">
+<input type="text" name="url" id="url" class="block full-width mb1 field-light" placeholder="Enter url to archive" value=""/>  
+  % for name in handlers:
+    <label for="{{name}}" class="block full-width mb2">
+    <input type="radio" name="handler" value="{{name}}" class="" {{! 'checked="checked"' if name == default_handler else '' }} required="true"/>
+    <span>{{handlers[name].get_desc()}}</span>
+    </label>
+  % end
+<button class="button-blue" type="submit">Archive Url</button>
+</form>
+</div>
+</body>
+</html>

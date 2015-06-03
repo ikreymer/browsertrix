@@ -35,7 +35,6 @@ web:
 
   links:
     - redis:redis
-#    - hub:hub
     - chrome1:chrome1
     - chrome2:chrome2
     - chrome3:chrome3

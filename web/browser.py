@@ -16,13 +16,21 @@ class ChromeBrowser(object):
 
         self.caps = caps
         self.readlog = readlog
+        self.driver = None
 
-        if not host_name:
+        if host_name:
+            try:
+                self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format(host_name),
+                                     desired_capabilities=caps)
+            except:
+                pass
+
+        if not self.driver:
             self.driver = Chrome(chrome_options=Options(), desired_capabilities=caps)
-        else:
-            self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format(host_name),
-                                 desired_capabilities=caps)
 
+    def close(self):
+        if self.driver:
+            self.driver.quit()
 
     def visit(self, url):
         self.driver.start_session(self.caps)

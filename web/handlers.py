@@ -1,20 +1,12 @@
 from selenium.common.exceptions import NoSuchElementException
-#import yaml
 from datetime import datetime
 
 
 # ============================================================================
-#def init_config(filename):
-#    with open(filename) as fh:
-#        results = yaml.load(fh)
-
-#    return results
-
-
-# ============================================================================
 class PrefixHandler(object):
-    def __init__(self, prefix):
+    def __init__(self, prefix, desc='Url Prefix Archiving Handler'):
         self.prefix = prefix
+        self.desc = desc
 
     def __call__(self, browser, url):
         log_results = browser.visit(self.prefix + url)
@@ -30,14 +22,21 @@ class PrefixHandler(object):
             results['archived'] = True
             results['actual_url'] = self.get_actual_url(browser)
 
+        results['browser_url'] = self.get_browser_url(browser)
         results['log'] = log_results
         return results
 
     def get_error(self, log_results, browser, url):
         return None
 
+    def get_desc(self):
+        return self.desc
+
+    def get_browser_url(self, browser):
+        return browser.driver.current_url
+
     def get_actual_url(self, browser):
-        url = browser.driver.current_url
+        url = self.get_browser_url(browser)
         try:
             inx = url[1:].index('/http')
             url = url[inx + 2:]
@@ -51,8 +50,9 @@ class PrefixHandler(object):
 class SavePageNowHandler(PrefixHandler):
     BLOCKED_MSGS = ('Sorry.', 'Page cannot be crawled or displayed due to robots.txt.')
 
-    def __init__(self, prefix='https://web.archive.org/save/'):
-        super(SavePageNowHandler, self).__init__(prefix)
+    def __init__(self, prefix='https://web.archive.org/save/',
+                       desc='IA Save Page Now Archiving'):
+        super(SavePageNowHandler, self).__init__(prefix, desc)
 
     def get_error(self, log_results, browser, url):
         try:
@@ -74,5 +74,9 @@ class SavePageNowHandler(PrefixHandler):
 
 # ============================================================================
 class WebRecorderHandler(PrefixHandler):
-    def __init__(self, prefix='https://webrecorder.io/record/'):
-        super(WebRecorderHandler, self).__init__(prefix)
+    def __init__(self, prefix='https://webrecorder.io/record/',
+                       desc='webrecorder.io anonymous recording'):
+        super(WebRecorderHandler, self).__init__(prefix, desc)
+
+    def get_error(self, log_results, browser, url):
+        return None
