@@ -51,7 +51,7 @@ class SavePageNowHandler(PrefixHandler):
     BLOCKED_MSGS = ('Sorry.', 'Page cannot be crawled or displayed due to robots.txt.')
 
     def __init__(self, prefix='https://web.archive.org/save/',
-                       desc='IA Save Page Now Archiving'):
+                       desc='Internet Archive <a href="https://web.archive.org/web/">Save Page Now</a> Archiving'):
         super(SavePageNowHandler, self).__init__(prefix, desc)
 
     def get_error(self, log_results, browser, url):
@@ -75,7 +75,7 @@ class SavePageNowHandler(PrefixHandler):
 # ============================================================================
 class WebRecorderHandler(PrefixHandler):
     def __init__(self, prefix='https://webrecorder.io/record/',
-                       desc='webrecorder.io anonymous recording'):
+                       desc='<a href="https://webrecorder.io/">webrecorder.io</a> Archiving'):
         super(WebRecorderHandler, self).__init__(prefix, desc)
 
     def get_error(self, log_results, browser, url):

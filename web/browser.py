@@ -44,7 +44,8 @@ class ChromeBrowser(object):
         try:
             log = self.driver.get_log('performance')
         except Exception as e:
-            print(e)
+            import traceback
+            traceback.print_exc()
             return results
 
         for entry in log:
@@ -63,7 +64,6 @@ class ChromeBrowser(object):
             except:
                 continue
 
-        print(results)
         return results
 
 

@@ -1,6 +1,7 @@
-ArchiveThisPage
-===============
+ArchiveThis.WebSite
+===================
 
 This project contains a webapp and a Docker compose setup to 
-allow for on-demand archiving of any web page through the browser
-using a web api.
+allow for on-demand browsing of any web site, geared towards on-demand archiving.
+
+The current configuration uses chrome workers only.

@@ -1,4 +1,6 @@
 from redis import StrictRedis
+from redis.utils import pipeline
+
 from browser import ChromeBrowser
 
 import json
@@ -82,19 +84,20 @@ def run(rc, browser, handlers, config):
             json_result = json.dumps(result)
             actual_url = result.get('actual_url')
 
-            if actual_url and actual_url != url:
-                actual_key = get_cache_key(name, actual_url)
-                rc.lpush(actual_key, json_result)
-                rc.expire(actual_key, config['archive_cache_secs'])
+            with pipeline(rc) as pi:
+                if actual_url and actual_url != url:
+                    actual_key = get_cache_key(name, actual_url)
+                    pi.lpush(actual_key, json_result)
+                    pi.expire(actual_key, config['archive_cache_secs'])
 
-            url_key = get_cache_key(name, url)
-            rc.lpush(url_key, json_result)
-            rc.expire(url_key, config['archive_cache_secs'])
+                url_key = get_cache_key(name, url)
+                pi.lpush(url_key, json_result)
+                pi.expire(url_key, config['archive_cache_secs'])
         except Exception as e:
-            print(e)
+            import traceback
+            traceback.print_exc()
             if url:
                 rc.delete('r:' + url)
-
 
 
 if __name__ == "__main__":

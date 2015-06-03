@@ -1,12 +1,15 @@
 from handlers import WebRecorderHandler, SavePageNowHandler
+from collections import OrderedDict
 
 def get_config():
     config = {}
-    config['handlers'] = {
-     'ia-save': SavePageNowHandler(),
-     'webrecorder': WebRecorderHandler(),
-     'test': WebRecorderHandler('https://webrecorder.io/preview/', desc='WebRecorder Test Preview (Not Recording)')
-    }
+
+    handlers = OrderedDict()
+    handlers['webrecorder'] = WebRecorderHandler()
+    handlers['test'] = WebRecorderHandler('https://webrecorder.io/preview/', desc='Dry Run with <a href="https://webrecorder.io">webrecorder.io</a> (Not Recording)')
+    handlers['ia-save'] = SavePageNowHandler()
+
+    config['handlers'] = handlers
 
     config['default_handler'] = 'ia-save'
 
@@ -16,6 +19,5 @@ def get_config():
 
     config['archive_cache_secs'] = 600
 
-    config['archive_page_url_template'] = '/{0}/archivepage'
     config['wait_timeout_secs'] = 30
     return config
