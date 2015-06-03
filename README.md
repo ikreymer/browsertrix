@@ -6,6 +6,8 @@ allow for on-demand browsing of any web site, geared towards on-demand archiving
 
 The current configuration uses chrome workers only.
 
+The project is deployed at: http://archivethis.website/
+
 ### Installation
 
 Docker and Docker Compose are the only requirements for running in Docker.
@@ -20,11 +22,11 @@ To archive a url, make a GET request to `http://<DOCKER HOST>/archivepage?url=[u
 
 The `[handler]` can be one of the hanlders specified in `config.yaml`, currently:
 
-* `ia-save` for Internet Archive Save Page Now
+* `ia-save` - for Internet Archive Save Page Now
 
-* `webrecorder` for https://webrecorder.io/
+* `webrecorder` - for https://webrecorder.io/
 
-* `test` for dry run with https://webrecorder.io/ (preview mode, no actual archiving)
+* `test` - for dry run with https://webrecorder.io/ (preview mode, no actual archiving)
 
 ### Results
 
