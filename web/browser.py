@@ -29,7 +29,8 @@ class ChromeBrowser(object):
                 self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format(self.host_name),
                                      desired_capabilities=self.caps)
             except:
-                pass
+                import traceback
+                traceback.print_exc()
 
         if not self.driver:
             self.driver = Chrome(chrome_options=Options(), desired_capabilities=self.caps)

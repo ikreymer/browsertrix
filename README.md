@@ -6,7 +6,6 @@ allow for on-demand browsing of any web site, geared towards on-demand archiving
 
 The current configuration uses chrome workers only.
 
-The project is deployed at: http://archivethis.website/
 
 ### Installation
 
