@@ -84,7 +84,6 @@ class WebRecorderHandler(PrefixHandler):
     def get_error(self, log_results, browser, url):
         return None
 
-
     def __call__(self, browser, url):
         results = super(WebRecorderHandler, self).__call__(browser, url)
         cookie = browser.driver.get_cookie('webrecorder.session')

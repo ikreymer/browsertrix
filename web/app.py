@@ -9,7 +9,7 @@ import os
 import logging
 
 from config import get_config
-from worker import get_cache_key, get_pending_key, init_redis
+from worker import get_cache_key, get_wait_key, init_redis
 
 application = None
 
@@ -66,7 +66,7 @@ def do_archive(url, handler):
         url = 'http://' + url
 
     response_key = get_cache_key(handler, url)
-    pending_key = get_pending_key(handler, url)
+    wait_key = get_wait_key(handler, url)
 
     result = None
 
@@ -74,13 +74,12 @@ def do_archive(url, handler):
         cmd = handler + ' ' + url
 
         with pipeline(rc) as pi:
-            pi.rpush(response_key, WAITING_STR)
+            pi.set(response_key, WAITING_STR)
             pi.rpush('q:urls', cmd)
 
-        result = rc.brpoplpush(pending_key, response_key, theconfig['wait_timeout_secs'])
+        rc.brpop(wait_key, theconfig['wait_timeout_secs'])
 
-    if not result:
-        result = rc.lindex(response_key, 0)
+    result = rc.get(response_key)
 
     if result:
         result = json.loads(result)

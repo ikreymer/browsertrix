@@ -42,13 +42,17 @@ class ChromeBrowser(object):
             self.driver.quit()
 
     def visit(self, url):
-        try:
-            self.driver.start_session(self.caps)
-        except:
-            logging.debug('Reiniting Driver, probably closed due to timeout')
-            self._init_driver()
+        #try:
+        #    self.driver.start_session(self.caps)
+        #except:
+        #    logging.debug('Reiniting Driver, probably closed due to timeout')
+        #    self._init_driver()
 
-        self.driver.get(url)
+        try:
+            self.driver.get(url)
+        except:
+            self._init_driver()
+            self.driver.get(url)
 
         results = {}
 

@@ -12,35 +12,8 @@ import os
 from config import get_config
 
 
-def map_to_browser(config):
-    """ Initialize the webdriver browser driver
-    Currently, supporting chrome only
-    TODO: add firefox as well
-    """
-
-    seen = set()
-
-    with open('/etc/hosts') as fh:
-        for line in fh:
-            if 'chrome' in line:
-                ip = line.split('\t')[0]
-                if ip not in seen:
-                    seen.add(ip)
-                    try:
-                        browser = create_browser(ip, config)
-                        logging.debug('Mapped {0} -> {1}'.format(socket.gethostname(), ip))
-                        return browser
-                    except Exception as e:
-                        logging.debug(e)
-                        logging.debug('Failed ' + ip)
-
-    logging.debug('NO BROWSER FOUND')
-    return None
-
-
 def get_avail_browser(config, rc):
     key = os.environ['NODE_KEY']
-    logging.debug(key)
     while True:
         try:
             host = rc.brpop(key, 10)
@@ -69,9 +42,9 @@ def get_cache_key(name, url):
     return 'r:' + name + ':' + url
 
 
-def get_pending_key(name, url):
+def get_wait_key(name, url):
     """ Redis key for pending operation"""
-    return 'p:' + name + ':' + url
+    return 'w:' + name + ':' + url
 
 
 def init_redis(config):
@@ -111,41 +84,42 @@ def run(rc, browser, handlers, config):
     """
     url = None
     while True:
+        cmd = rc.brpop('q:urls', 10)
+
+        if not cmd:
+            continue
+
+        val = cmd[1].decode('utf-8')
+
+        name, url = val.split(' ')
+
+        result_key = get_cache_key(name, url)
+        wait_key = get_wait_key(name, url)
+
         try:
-            cmd = rc.brpop('q:urls', 10)
-
-            if not cmd:
-                continue
-
-            val = cmd[1].decode('utf-8')
-
-            name, url = val.split(' ')
-
             result = handlers[name](browser, url)
-
-            json_result = json.dumps(result)
-            actual_url = result.get('actual_url')
-
-            with pipeline(rc) as pi:
-                if actual_url and actual_url != url:
-                    actual_key = get_cache_key(name, actual_url)
-                    pi.lpush(actual_key, json_result)
-                    pi.expire(actual_key, config['archive_cache_secs'])
-
-                pending_key = get_pending_key(name, url)
-                pi.lpush(pending_key, json_result)
-                pi.expire(pending_key, config['archive_cache_secs'])
+            cache_time = config['archive_cache_secs']
         except Exception as e:
-            logging.debug(e)
             import traceback
             traceback.print_exc()
-            if url:
-                rc.delete('r:' + url)
+
+            result = {'archived': False, 'error': str(e)}
+            cache_time = config['err_cache_secs']
+
+        json_result = json.dumps(result)
+        actual_url = result.get('actual_url')
+
+        with pipeline(rc) as pi:
+            if actual_url and actual_url != url:
+                actual_key = get_cache_key(name, actual_url)
+                pi.setex(actual_key, cache_time, json_result)
+
+            pi.setex(result_key, cache_time, json_result)
+
+            pi.lpush(wait_key, 1)
+            pi.expire(wait_key, cache_time)
 
 
 if __name__ == "__main__":
-    #import time
-    #while True:
-    #    time.sleep(10)
     init()
 

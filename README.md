@@ -15,6 +15,17 @@ After cloning this repository, run `docker-compose up`
 
 Access at `http://$DOCKER_HOST/` where `DOCKER_HOST` is the host where Docker is running.
 
+
+#### Cluster Sizing
+
+Using Docker Compose scale feature, it is possible to dynamically resize the number of workers and browsers.
+The cluster automatically starts with only one browser and worker.
+
+The `set-scale.sh` script is provided for convenience, eg: to set up 10 workers and browsers, run:
+
+`./set-scale.sh 10`
+
+
 ### Archiving a Url
 
 To archive a url, make a GET request to `http://<DOCKER HOST>/archivepage?url=[url]&handler=[handler]`

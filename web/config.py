@@ -17,6 +17,7 @@ def get_config():
     config['chrome_url_log'] = True
 
     config['archive_cache_secs'] = 600
+    config['err_cache_secs'] = 10
 
     config['wait_timeout_secs'] = 30
     return config
