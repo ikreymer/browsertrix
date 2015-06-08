@@ -11,10 +11,9 @@ def get_config():
 
     config['handlers'] = handlers
 
-    config['default_handler'] = 'ia-save'
+    config['default_handler'] = 'test'
 
-    config['redis_url'] = 'redis://redis_1/2'
-    config['chrome_host'] = 'chrome{0}_1'
+    config['redis_url'] = 'redis://redis_1/'
     config['chrome_url_log'] = True
 
     config['archive_cache_secs'] = 600

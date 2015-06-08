@@ -24,16 +24,18 @@ class ChromeBrowser(object):
     def _init_driver(self):
         self.driver = None
 
-        if self.host_name:
+        while True:
             try:
                 self.driver = Remote(command_executor='http://{0}:4444/wd/hub'.format(self.host_name),
                                      desired_capabilities=self.caps)
+                break
             except:
                 import traceback
                 traceback.print_exc()
+                print('RETRY CONN')
 
-        if not self.driver:
-            self.driver = Chrome(chrome_options=Options(), desired_capabilities=self.caps)
+        #if not self.driver:
+        #    self.driver = Chrome(chrome_options=Options(), desired_capabilities=self.caps)
 
     def close(self):
         if self.driver:

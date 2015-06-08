@@ -33,7 +33,10 @@ class PrefixHandler(object):
         return self.desc
 
     def get_browser_url(self, browser):
-        return browser.driver.current_url
+        try:
+            return browser.driver.current_url
+        except:
+            return ''
 
     def get_actual_url(self, browser):
         url = self.get_browser_url(browser)
@@ -66,7 +69,7 @@ class SavePageNowHandler(PrefixHandler):
 
         except NoSuchElementException:
             pass
-        except e:
+        except Exception as e:
             return {'unknown': str(e)}
 
         return None
@@ -80,3 +83,11 @@ class WebRecorderHandler(PrefixHandler):
 
     def get_error(self, log_results, browser, url):
         return None
+
+
+    def __call__(self, browser, url):
+        results = super(WebRecorderHandler, self).__call__(browser, url)
+        cookie = browser.driver.get_cookie('webrecorder.session')
+        results['session'] = cookie
+        print('SESSION', cookie)
+        return results
