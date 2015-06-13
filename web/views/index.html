@@ -13,12 +13,26 @@
 <p class="sm-col-4 mx-auto">Enter URL, Get Web Archive</p>
 <form class="sm-col-4 h5 mx-auto" method="get" action="archivepage" onsubmit="var url = document.getElementById('url').value; if (url == '') { return false; }">
 <input type="text" name="url" id="url" class="block full-width mb2 field-light" placeholder="Enter url to archive here, eg: http://example.com/" value=""/>  
-  % for name in handlers.keys():
+  % for name in archives.keys():
     <label for="{{name}}" class="block full-width">
-    <input type="radio" name="handler" value="{{name}}" class="" {{! 'checked="checked"' if name == default_handler else '' }} required="true"/>
-    <span>{{!handlers[name].get_desc()}}</span>
+    <input type="radio" name="archive" value="{{name}}" class="" {{! 'checked="checked"' if name == default_archive else '' }} required="true"/>
+    <span>{{!archives[name].get_desc()}}</span>
     </label>
   % end
+
+
+<span class="sm-col-12 mt2 full-width block">
+Archive using:
+<label for="chrome" class="">
+<input type="radio" name="browser" value="chrome" checked="checked"/>Chrome
+</label>
+
+<label for="chrome" class="">
+<input type="radio" name="browser" value="firefox"/>Firefox
+</label>
+
+</span>
+
 <button class="button-blue mt2" type="submit">Archive This Website!</button>
 </form>
 </div>
