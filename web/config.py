@@ -4,14 +4,14 @@ from collections import OrderedDict
 def get_config():
     config = {}
 
-    handlers = OrderedDict()
-    handlers['webrecorder'] = WebRecorderHandler()
-    handlers['test'] = WebRecorderHandler('https://webrecorder.io/preview/', desc='Dry Run with <a href="https://webrecorder.io">webrecorder.io</a> (Not Recording)')
-    handlers['ia-save'] = SavePageNowHandler()
+    archives = OrderedDict()
+    archives['webrecorder'] = WebRecorderHandler()
+    archives['test'] = WebRecorderHandler('https://webrecorder.io/preview/', desc='Dry Run with <a href="https://webrecorder.io">webrecorder.io</a> (Not Recording)')
+    archives['ia-save'] = SavePageNowHandler()
 
-    config['handlers'] = handlers
+    config['archives'] = archives
 
-    config['default_handler'] = 'test'
+    config['default_archive'] = 'test'
 
     config['redis_url'] = 'redis://redis_1/'
     config['chrome_url_log'] = True

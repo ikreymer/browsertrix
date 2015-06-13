@@ -10,7 +10,9 @@ import logging
 import requests
 
 from config import get_config
-from worker import get_cache_key, get_wait_key, init_redis
+
+from worker import get_cache_key, get_wait_key, get_queue_key
+from worker import init_redis
 
 application = None
 
@@ -38,34 +40,38 @@ def init():
 @route(['/', '/index.html', '/index.htm'])
 @view('index')
 def home():
-    return {'handlers': theconfig['handlers'],
-            'default_handler': theconfig.get('default_handler')}
+    return {'archives': theconfig['archives'],
+            'default_archive': theconfig.get('default_archive')}
 
 
 
-def get_url_and_handler():
+def get_params():
     url = request.query.get('url')
 
-    handler = request.query.get('handler')
+    archive = request.query.get('archive')
+
+    browser_type = request.query.get('browser', 'chrome')
 
     if not url:
         raise HTTPError(status=400, body='No url= specified')
 
-    if handler not in theconfig['handlers']:
-        raise HTTPError(status=400, body='No archiving handler {0}'.format(handler))
+    if archive not in theconfig['archives']:
+        raise HTTPError(status=400, body='No archive {0}'.format(archive))
 
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + url
 
-    return url, handler
+    return browser_type, archive, url
 
 
 @route('/archivepage')
 def archive_page():
-    url, handler = get_url_and_handler()
+    browser_type, archive, url = get_params()
 
-    response_key = get_cache_key(handler, url)
-    wait_key = get_wait_key(handler, url)
+    response_key = get_cache_key(archive, browser_type, url)
+    wait_key = get_wait_key(archive, browser_type, url)
+
+    queue_key = get_queue_key(browser_type)
 
     result = None
 
@@ -73,7 +79,7 @@ def archive_page():
         cmd = dict(request.query)
         cmd['url'] = url
 
-        num = rc.incr('total_urls')
+        num = rc.incr('total_urls:' + browser_type)
         cmd['num'] = num
 
         cmd = json.dumps(cmd)
@@ -84,7 +90,7 @@ def archive_page():
                            'num': num}
 
             pi.set(response_key, json.dumps(waiting_str))
-            pi.rpush('q:urls', cmd)
+            pi.rpush(queue_key, cmd)
 
         rc.blpop(wait_key, theconfig['wait_timeout_secs'])
 
@@ -95,7 +101,7 @@ def archive_page():
 
         if 'queued' in result:
             result['queue_pos'] = 0
-            front = rc.lindex('q:urls', 0)
+            front = rc.lindex(queue_key, 0)
             if front:
                 front = json.loads(front)
                 front_num = front.get('num', 0)
@@ -114,9 +120,9 @@ def archive_page():
 
 @route('/download')
 def download():
-    url, handler = get_url_and_handler()
+    browser_type, archive, url = get_params()
 
-    response_key = get_cache_key(handler, url)
+    response_key = get_cache_key(archive, browser_type, url)
 
     result = rc.get(response_key)
     if not result:

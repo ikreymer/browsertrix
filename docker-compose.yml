@@ -1,3 +1,4 @@
+# Redis
 redis:
   restart: always
   image: redis:latest
@@ -7,29 +8,58 @@ redis:
   volumes:
     - ./data/:/data/
 
+
+# Selenium Chrome Web Driver
 chrome:
-  build: ./reg-redis
+  build: ./browser-chrome
   restart: always
   links:
     - redis:redis
 
   environment:
-    - NODE_KEY=nodes
+    - NODE_KEY=nodes-chrome
 
 
-worker:
+# Selenium FF Web Driver
+firefox:
+  build: ./browser-firefox
+  restart: always
+  links:
+    - redis:redis
+
+  environment:
+    - NODE_KEY=nodes-firefox
+
+
+# Worker for Chrome Browsers
+workerchrome:
   restart: always
   build: ./web
   links:
     - redis:redis
-    - chrome:chrome
+    - chrome:browser
 
   environment:
-    - NODE_KEY=nodes
+    - NODE_KEY=nodes-chrome
 
-  command: python worker.py
+  command: python worker.py chrome
 
 
+# Worker for FF Browsers
+workerfirefox:
+  restart: always
+  build: ./web
+  links:
+    - redis:redis
+    - firefox:browser
+
+  environment:
+    - NODE_KEY=nodes-firefox
+
+  command: python worker.py firefox
+
+
+# Web App
 web:
   restart: always
   build: ./web
