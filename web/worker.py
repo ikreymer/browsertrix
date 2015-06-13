@@ -16,7 +16,7 @@ def get_avail_browser(config, rc):
     key = os.environ['NODE_KEY']
     while True:
         try:
-            host = rc.brpop(key, 10)
+            host = rc.blpop(key, 10)
             if not host:
                 continue
 
@@ -64,7 +64,8 @@ def init():
     """ Initialize the uwsgi worker which will read urls to archive from redis queue
     and use associated web driver to connect to remote web browser
     """
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s: [%(levelname)s]: %(message)s',
+                        level=logging.DEBUG)
     logging.debug('WebDriver Worker Started')
 
     config = get_config()
@@ -84,14 +85,16 @@ def run(rc, browser, handlers, config):
     """
     url = None
     while True:
-        cmd = rc.brpop('q:urls', 10)
+        import time
+        time.sleep(25)
+        cmd = rc.blpop('q:urls', 10)
 
         if not cmd:
             continue
 
-        val = cmd[1].decode('utf-8')
-
-        name, url = val.split(' ')
+        val= json.loads(cmd[1])
+        name = val['handler']
+        url = val['url']
 
         result_key = get_cache_key(name, url)
         wait_key = get_wait_key(name, url)
@@ -103,7 +106,7 @@ def run(rc, browser, handlers, config):
             import traceback
             traceback.print_exc()
 
-            result = {'archived': False, 'error': str(e)}
+            result = {'archived': False, 'error': {'other': str(e) }}
             cache_time = config['err_cache_secs']
 
         json_result = json.dumps(result)
@@ -116,7 +119,7 @@ def run(rc, browser, handlers, config):
 
             pi.setex(result_key, cache_time, json_result)
 
-            pi.lpush(wait_key, 1)
+            pi.rpush(wait_key, 1)
             pi.expire(wait_key, cache_time)
 
 

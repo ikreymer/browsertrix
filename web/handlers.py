@@ -11,7 +11,13 @@ class PrefixHandler(object):
     def __call__(self, browser, url):
         log_results = browser.visit(self.prefix + url)
 
-        error = self.get_error(log_results, browser, url)
+        try:
+            error = self.get_error(log_results, browser, url)
+        except NoSuchElementException:
+            # no error
+            error = None
+        except Exception as e:
+            error = {'unknown': str(e)}
 
         results = {'time': str(datetime.utcnow())}
 
@@ -58,19 +64,13 @@ class SavePageNowHandler(PrefixHandler):
         super(SavePageNowHandler, self).__init__(prefix, desc)
 
     def get_error(self, log_results, browser, url):
-        try:
-            err_text = browser.driver.find_element_by_css_selector("div#positionHome #error h2").text
-            info = err_text + ' ' + browser.driver.find_element_by_css_selector("div#positionHome #error p").text
+        err_text = browser.driver.find_element_by_css_selector("div#positionHome #error h2").text
+        info = err_text + ' ' + browser.driver.find_element_by_css_selector("div#positionHome #error p").text
 
-            if err_text in self.BLOCKED_MSGS:
-                return {'blocked': info}
-            else:
-                return {'other': info}
-
-        except NoSuchElementException:
-            pass
-        except Exception as e:
-            return {'unknown': str(e)}
+        if err_text in self.BLOCKED_MSGS:
+            return {'blocked': info}
+        else:
+            return {'other': info}
 
         return None
 
@@ -82,11 +82,28 @@ class WebRecorderHandler(PrefixHandler):
         super(WebRecorderHandler, self).__init__(prefix, desc)
 
     def get_error(self, log_results, browser, url):
+        browser.driver.switch_to.frame('iframe')
+        err_elem = browser.driver.find_element_by_css_selector('div.webrec-error div.page-header span.h2')
+        if err_elem.text == 'WebRecorder.io error':
+            try:
+                msg = browser.driver.find_element_by_css_selector('div.webrec-error p.h4').text
+            except:
+                msg = 'unknown'
+
+            return {'other': msg}
+
         return None
 
     def __call__(self, browser, url):
+        browser.driver.delete_all_cookies()
         results = super(WebRecorderHandler, self).__call__(browser, url)
+
+        if 'error' in results:
+            return results
+
         cookie = browser.driver.get_cookie('webrecorder.session')
-        results['session'] = cookie
-        print('SESSION', cookie)
+        if cookie:
+            results['download_session'] = cookie['name'] + '=' + cookie['value']
+            results['download_url'] = 'https://webrecorder.io/download/warc'
+
         return results
