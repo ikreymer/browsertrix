@@ -136,8 +136,8 @@ def download():
                      headers=headers,
                      stream=True)
 
-    print(r.status_code)
-    print(r)
+    if r.status_code != 200:
+        raise HTTPError(status=400, body='Invalid Download Result: {0} {1}'.format(r.status_code, r.reason))
 
     pass_headers = ('Content-Disposition', 'Content-Length', 'Content-Type')
 

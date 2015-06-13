@@ -85,8 +85,6 @@ def run(rc, browser, handlers, config):
     """
     url = None
     while True:
-        import time
-        time.sleep(25)
         cmd = rc.blpop('q:urls', 10)
 
         if not cmd:
