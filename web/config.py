@@ -6,12 +6,12 @@ def get_config():
 
     archives = OrderedDict()
     archives['webrecorder'] = WebRecorderHandler()
-    archives['test'] = WebRecorderHandler('https://webrecorder.io/preview/', desc='Dry Run with <a href="https://webrecorder.io">webrecorder.io</a> (Not Recording)')
+#    archives['test'] = WebRecorderHandler('https://webrecorder.io/preview/', desc='Preview with <a href="https://webrecorder.io">webrecorder.io</a> (Not Recording)')
     archives['ia-save'] = SavePageNowHandler()
 
     config['archives'] = archives
 
-    config['default_archive'] = 'test'
+    config['default_archive'] = 'webrecorder'
 
     config['redis_url'] = 'redis://redis_1/'
     config['chrome_url_log'] = True

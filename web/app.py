@@ -16,7 +16,7 @@ from worker import init_redis
 
 application = None
 
-ERROR_RESP = {'archived': False, 'queued': False, 'error': {'other': 'unknown'}}
+ERROR_RESP = {'archived': False, 'queued': False, 'error': {'msg': 'unknown'}}
 
 
 def init():

@@ -1,40 +1,198 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    @import url("//d2v52k3cl9vedd.cloudfront.net/basscss/4.1.7/basscss.min.css");
-    body { margin-top: 5%; margin-left: 0px; font-family: "myriad-pro", sans-serif; }
-  </style>
-</head>
-<body>
+    <head>
+        <style>
+            @import url("//d2v52k3cl9vedd.cloudfront.net/basscss/6.1.6/basscss.min.css");
+            body { margin-top: 5%; margin-left: 0px; font-family: "myriad-pro", sans-serif; }
 
-<div class="sm-col-12 full-width block">
-<h2 class="mx-auto sm-col-4">Archive This Website</h2>
-<p class="sm-col-4 mx-auto">Enter URL, Get Web Archive</p>
-<form class="sm-col-4 h5 mx-auto" method="get" action="archivepage" onsubmit="var url = document.getElementById('url').value; if (url == '') { return false; }">
-<input type="text" name="url" id="url" class="block full-width mb2 field-light" placeholder="Enter url to archive here, eg: http://example.com/" value=""/>  
-  % for name in archives.keys():
-    <label for="{{name}}" class="block full-width">
-    <input type="radio" name="archive" value="{{name}}" class="" {{! 'checked="checked"' if name == default_archive else '' }} required="true"/>
-    <span>{{!archives[name].get_desc()}}</span>
-    </label>
-  % end
+            .error {
+                font-weight: bold;
+                display: none;
+            }
 
+            .queued {
+                font-weight: bold;
+                display: none;
+            }
 
-<span class="sm-col-12 mt2 full-width block">
-Archive using:
-<label for="chrome" class="">
-<input type="radio" name="browser" value="chrome" checked="checked"/>Chrome
-</label>
+            .archived {
+                font-weight: bold;
+                display: none;
+            }
 
-<label for="chrome" class="">
-<input type="radio" name="browser" value="firefox"/>Firefox
-</label>
+            #showresponse {
+                font-variant: small-caps;
+                display: none;
+                color: black;
+            }
 
-</span>
+            #response {
+                font-family: monospace;
+                display: none;
+                min-width: 100%;
+                min-height: 400px;
+            }
+        </style>
+        <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            $(function() {
+                $("#archivethispage").submit(function(e) {
+                    e.preventDefault();
+                    var query = $(this).serialize();
 
-<button class="button-blue mt2" type="submit">Archive This Website!</button>
-</form>
-</div>
-</body>
+                    var url = $("#url").val();
+
+                    if (!url) {
+                        return false;
+                    }
+
+                    //$("#loading").show();
+
+                    $("#submit").prop("disabled", true);
+                    $("#submit").text("Archiving, Please Wait...");
+
+                    $(".error").hide();
+                    $(".queued").hide();
+                    $(".archived").hide();
+
+                    $("#response").hide();
+                    $("#showresponse").hide();
+
+                    $.getJSON("/archivepage?" + query, function(data) {
+                        //$("#loading").hide();
+
+                        $("#submit").prop("disabled", false);
+                        $("#submit").text("Archive This Website!");
+
+                        $("#showresponse").show();
+
+                        if (data) {
+                            handle_results(data, query);
+                        }
+                    });
+                });
+
+                $("#showresponse").click(function() {
+                    $("#response").toggle();
+                });
+            });
+
+            function handle_results(results, query) {
+                $("#response").val(JSON.stringify(results, null, 2));
+
+                if (results.error) {
+                    if (results.error.type == "blocked") {
+                        $(".error #type").text("-- Page Blocked");
+                    }
+                    $(".error #reason").text(results.error.msg);
+                    $(".error").show();
+                    return;
+                }
+
+                if (results.queued) {
+                    var pos = results.queue_pos;
+                    if (pos != undefined) {
+                        if (pos <= 0) {
+                            pos = "0 (Page is currently being archived)";
+                        }
+                        $(".queued #pos").text(pos);
+                        $(".queued").show();
+                    }
+                    return;
+                }
+
+                if (results.archived) {
+                    var num = 0;
+                    
+                    if (results.log) {
+                        num = Object.keys(results.log).length;
+                    }
+                        
+                    if (num > 0) {
+                        $(".archived #num").text(num);
+                        $(".archived #log-count").show();
+                    } else {
+                        $(".archived #log-count").hide();
+                    }
+
+                    if (results.download_url) {
+                        $(".archived #download a").attr("href", "/download?" + query);
+                        $(".archived #download").show();
+                    } else {
+                        $(".archived #download").hide();
+                    }
+
+                    if (results.replay_url) {
+                        $(".archived #replay a").attr("href", results.replay_url);
+                        $(".archived #replay").show();
+                    } else {
+                        $(".archived #replay").hide();
+                    }
+
+                    $(".archived").show();
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
+        <div class="sm-col-12 full-width block">
+            <h2 class="mx-auto sm-col-4">Archive This Website</h2>
+            <p class="sm-col-4 mx-auto">Enter Website, Create Web Archive</p>
+            <form id="archivethispage" class="sm-col-4 h5 mx-auto mb2" method="get" action="archivepage">
+                <input type="text" name="url" id="url" class="block full-width mb2 field-light" placeholder="Enter url to archive here, eg: http://example.com/" required="true"/>  
+                % for name in archives.keys():
+                <label for="{{name}}" class="block full-width">
+                    <input type="radio" name="archive" value="{{name}}" class="" {{! 'checked="checked"' if name == default_archive else '' }} required="true"/>
+                    <span>{{!archives[name].get_desc()}}</span>
+                </label>
+                % end
+
+                <span class="sm-col-12 mt2 full-width block">
+                    <span>Archive using:</span>
+                    <label for="chrome" class="">
+                        <input type="radio" name="browser" value="chrome" checked="checked"/>Chrome
+                    </label>
+
+                    <label for="chrome" class="">
+                        <input type="radio" name="browser" value="firefox"/>Firefox
+                    </label>
+
+                </span>
+
+                <button id="submit" class="button mt2" type="submit">Archive This Website!</button>
+            </form>
+
+            <div class="sm-col-4 mx-auto" id="loading" style="display: none">
+                <h3>Archiving...</h3>
+            </div>
+
+            <div class="sm-col-4 mx-auto error red">
+                <div class="block full-width">Sorry, an error has occured<span id="type"></span></div>
+                <div class="reason block full-width">Reason: <span id="reason"></span></div>
+            </div>
+
+            <div class="sm-col-4 mx-auto queued orange">
+                <div class="block full-width">The url is queued and will be recorded soon</div>
+                <div class="block full-width">Position in Queue: <span id="pos"></span></div>
+            </div>
+
+            <div class="sm-col-4 mx-auto archived olive">
+                <div class="block full-width">Archived!</div>
+                <div id="log-count" class="block full-width"><span id="num"></span>&nbsp;total urls were archived</div>
+                <div id="replay" class="block full-width"><a href="#">View Archived Page</a></div>
+                <div id="download" class="block full-width"><a href="#">Download Archive (WARC)</a></div>
+            </div>
+
+            <div class="sm-col-4 mx-auto mt2">
+                <a id="showresponse" href="#">show full json response</a>
+            </div>
+        </div>
+
+        <div class="sm-col-10 full-width mx-auto block">
+            <textarea id="response"></textarea>
+        </div>
+
+    </body>
 </html>

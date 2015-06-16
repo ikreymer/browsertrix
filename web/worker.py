@@ -118,7 +118,7 @@ def run(rc, browser, archives, config, browser_type):
             import traceback
             traceback.print_exc()
 
-            result = {'archived': False, 'error': {'other': str(e) }}
+            result = {'archived': False, 'error': {'msg': str(e) }}
             cache_time = config['err_cache_secs']
 
         json_result = json.dumps(result)

@@ -17,7 +17,7 @@ class PrefixHandler(object):
             # no error
             error = None
         except Exception as e:
-            error = {'unknown': str(e)}
+            error = {'msg': str(e)}
 
         results = {'time': str(datetime.utcnow())}
 
@@ -27,10 +27,14 @@ class PrefixHandler(object):
         else:
             results['archived'] = True
             results['actual_url'] = self.get_actual_url(browser)
+            self.set_success_results(browser, url, results)
 
         results['browser_url'] = self.get_browser_url(browser)
         results['log'] = log_results
         return results
+
+    def set_success_results(self, browser, url, results):
+        pass
 
     def get_error(self, log_results, browser, url):
         return None
@@ -63,14 +67,20 @@ class SavePageNowHandler(PrefixHandler):
                        desc='Internet Archive <a href="https://web.archive.org/web/">Save Page Now</a> Archiving'):
         super(SavePageNowHandler, self).__init__(prefix, desc)
 
+    def set_success_results(self, browser, url, results):
+        cookie = browser.driver.get_cookie('webrecorder.session')
+
+        # not exact but close enough
+        results['replay_url'] = 'https://web.archive.org/web/' + url
+
     def get_error(self, log_results, browser, url):
         err_text = browser.driver.find_element_by_css_selector("div#positionHome #error h2").text
         info = err_text + ' ' + browser.driver.find_element_by_css_selector("div#positionHome #error p").text
 
         if err_text in self.BLOCKED_MSGS:
-            return {'blocked': info}
+            return {'msg': info, 'type': 'blocked'}
         else:
-            return {'other': info}
+            return {'msg': info}
 
         return None
 
@@ -87,21 +97,18 @@ class WebRecorderHandler(PrefixHandler):
         if err_elem.text == 'WebRecorder.io error':
             try:
                 msg = browser.driver.find_element_by_css_selector('div.webrec-error p.h4').text
+                if 'Name or service not known' in msg:
+                    msg = 'This url could not be reached'
             except:
                 msg = 'unknown'
 
-            return {'other': msg}
+            return {'msg': msg}
 
         return None
 
-    def __call__(self, browser, url):
-        browser.driver.delete_all_cookies()
-        results = super(WebRecorderHandler, self).__call__(browser, url)
-
-        if 'error' in results:
-            return results
-
+    def set_success_results(self, browser, url, results):
         cookie = browser.driver.get_cookie('webrecorder.session')
+
         if cookie:
             results['download_session'] = cookie['name'] + '=' + cookie['value']
             results['download_url'] = 'https://webrecorder.io/download/warc'
