@@ -15,6 +15,7 @@ The first iteration of Browsertrix supports archiving a single web page, through
 Urls can be submitted to Browsertrix via HTTP and it will attempt to load the urls in an available browser right away.
 Browsertrix can operate synchronously or asynchronously. If the operation does not complete within the specified timeout
 (default 30 secs), a `queued` response is returned and the user may retry the operation to get the result at a later time.
+The results of the archiving operation are cached (for 10 mins if successful, for 30 secs otherwise) so that future requests will return the cached result.
 
 Redis is used to queue urls for archiving, and cache results for the archiving operation. Configurable options
 are currently available in the `config.py` module.
@@ -25,6 +26,10 @@ Additional automated browser based crawling features are planned for the next it
 ### Installation
 
 Docker and Docker Compose are the only requirements for running Browsertrix.
+
+Install Docker as recommended at: https://docs.docker.com/installation/
+
+Install Docker Compose with: `pip install docker-compose`
 
 After cloning this repository, run `docker-compose up`
 
@@ -77,7 +82,7 @@ The result of the archiving operation is a JSON block. The block contains one of
   
    - `download_url` - if the archived content is available for download as a WARC file, this is the link to the WARC.
    
-   - `download_session` - a session cookie that may need to be set to download the WARC.
+   - `actual_url` - if the original url caused a redirect, this will contain the actual url that was archived (only present if different from original).
     
    - `browser_url` - The actual url loaded by the browser to "seed" the archive.
     
