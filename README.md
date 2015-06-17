@@ -75,7 +75,17 @@ The result of the archiving operation is a JSON block. The block contains one of
 
    - `replay_url` - if the archived page is immediately available for replay, this is the url to access the archived content.
   
-   - `download_url` - if the archived content is available for download as a WARC file, this is the link to the WARC
+   - `download_url` - if the archived content is available for download as a WARC file, this is the link to the WARC.
+   
+   - `download_session` - a session cookie that may need to be set to download the WARC.
+    
+   - `browser_url` - The actual url loaded by the browser to "seed" the archive.
+    
+   - `time` - Timestamp of when the page was archived.
+   
+   - `ttl` - time remaining (in seconds) for this entry to be stored in the cache. After the entry expires, a subsequent query will re-archive the page. Default is 10 min (600 secs) and can be configured in `config.py`
+   
+   - `log` HTTP response log from the browser, available only in Chrome. The format is `{<URL>: <STATUS>}` for each url loaded to archive the current page.
 
 
 
