@@ -1,7 +1,9 @@
 ## Browsertrix 0.1
 
-Browsertrix is an automated web archiving system, desgined to create high-fidelity web archives
-by automating real browser running in containers (Docker) using Selenium and other automation tools.
+Browsertrix is a web archiving automation system, desgined to create high-fidelity web archives
+by automating real browsers running in containers (Docker) using Selenium and other automation tools.
+The system does not currently do any archiving of its own, but automates browsing loading through existing archiving
+and recording tools.
 
 By loading pages directly through a browser, it will be possible to fully recreate a page as the user experiences it, including all dynamic content
 and interaction.
@@ -20,7 +22,7 @@ The results of the archiving operation are cached (for 10 mins if successful, fo
 Redis is used to queue urls for archiving, and cache results for the archiving operation. Configurable options
 are currently available in the `config.py` module.
 
-Additional automated browser based crawling features are planned for the next iteration.
+Additional automated browser "crawling" and multi-url features are planned for the next iteration.
 
 
 ### Installation
