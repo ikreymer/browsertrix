@@ -1,5 +1,6 @@
 from selenium.common.exceptions import NoSuchElementException
 from datetime import datetime
+from urllib import urlencode
 
 
 # ============================================================================
@@ -30,7 +31,13 @@ class PrefixHandler(object):
             self.set_success_results(browser, url, results)
 
         results['browser_url'] = self.get_browser_url(browser)
+
+        for n in list(log_results.keys()):
+            if not self.is_archived_url(n):
+                del log_results[n]
+
         results['log'] = log_results
+
         return results
 
     def set_success_results(self, browser, url, results):
@@ -38,6 +45,9 @@ class PrefixHandler(object):
 
     def get_error(self, log_results, browser, url):
         return None
+
+    def is_archived_url(self, url):
+        return url.startswith(self.prefix)
 
     def get_desc(self):
         return self.desc
@@ -110,7 +120,15 @@ class WebRecorderHandler(PrefixHandler):
         cookie = browser.driver.get_cookie('webrecorder.session')
 
         if cookie:
-            results['download_session'] = cookie['name'] + '=' + cookie['value']
-            results['download_url'] = 'https://webrecorder.io/download/warc'
+            query = urlencode({'url': url, 'sesh': cookie['value']})
+            #results['download_session'] = cookie['name'] + '=' + cookie['value']
+            results['download_url'] = 'https://webrecorder.io/cmd/sesh_download?' + query
+            results['replay_url'] = 'https://webrecorder.io/cmd/setsesh?' + query
 
         return results
+
+    def is_archived_url(self, url):
+        if url.startswith(self.prefix) and '_/' in url:
+            return True
+
+        return False

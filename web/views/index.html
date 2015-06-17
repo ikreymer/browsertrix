@@ -116,7 +116,7 @@
                     }
 
                     if (results.download_url) {
-                        $(".archived #download a").attr("href", "/download?" + query);
+                        $(".archived #download a").attr("href", results.download_url);
                         $(".archived #download").show();
                     } else {
                         $(".archived #download").hide();
