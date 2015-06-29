@@ -132,3 +132,25 @@ class WebRecorderHandler(PrefixHandler):
             return True
 
         return False
+
+# ============================================================================
+class WebRecorderLoginHandler(PrefixHandler):
+    def __init__(self, prefix,
+                       desc='<a href="https://beta.webrecorder.io/">beta.webrecorder.io</a> Logged-In Archiving'):
+        super(WebRecorderLoginHandler, self).__init__(prefix, desc)
+
+    def __call__(self, browser, url):
+        log_results = browser.visit(self.prefix + url)
+
+        try:
+            err_elem = browser.driver.find_element_by_css_selector('div.container div.alert-danger')
+            if 'No such page or content' in err_elem.text:
+                browser.driver.add_cookie(self.cookies)
+                print('ADDED COOKIE')
+                log_results = browser.visit(self.prefix + url)
+        except:
+            pass
+
+        results = {'time': str(datetime.utcnow())}
+        results['log'] = log_results
+        return results

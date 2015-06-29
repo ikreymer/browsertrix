@@ -92,7 +92,8 @@ def archive_page():
             pi.set(response_key, json.dumps(waiting_str))
             pi.rpush(queue_key, cmd)
 
-        rc.blpop(wait_key, theconfig['wait_timeout_secs'])
+        if not request.query.get('async'):
+            rc.blpop(wait_key, theconfig['wait_timeout_secs'])
 
     result = rc.get(response_key)
 
