@@ -60,11 +60,11 @@ the Chrome and Firefox workers. For example, to have 4 of each browser, you can 
 
 This first iteration of Browsertrix provides an api endpoint at the `/archivepage` endpoint for archiving a single page.
 
-To archive a url, a GET request can be made to `http://<DOCKER HOST>/archivepage?url=URL&handler=HANDLER[&browser=browser]`
+To archive a url, a GET request can be made to `http://<DOCKER HOST>/archivepage?url=URL&archive=ARCHIVE[&browser=browser]`
 
 * `url` - The URL to be archived
 
-* `handler` - One of the available handlers specified in `config.py`. Current handlers are `ia-save` and `webrecorder`
+* `archive` - One of the available archives specified in `config.py`. Current archives are `ia-save` and `webrecorder`
 
 * `browser` - (Optional) Currently either `chrome` or `firefox`. Chrome is the default if omitted.
 
