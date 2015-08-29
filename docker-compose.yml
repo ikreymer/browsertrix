@@ -19,6 +19,9 @@ chrome:
   environment:
     - NODE_KEY=nodes-chrome
 
+  # see https://github.com/SeleniumHQ/docker-selenium/issues/79
+  volumes:
+    - /dev/shm:/dev/shm
 
 # Selenium FF Web Driver
 firefox:
