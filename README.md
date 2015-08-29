@@ -1,4 +1,4 @@
-## Browsertrix 0.1
+## Browsertrix 0.1.1
 
 Browsertrix is a web archiving automation system, desgined to create high-fidelity web archives
 by automating real browsers running in containers (Docker) using Selenium and other automation tools.
