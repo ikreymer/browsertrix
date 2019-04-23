@@ -1,3 +1,6 @@
+## Note: This repository is obsolete and represents an original attempt at browser automation.
+## Please see the new Browsertrix at [webrecorder/browsertrix](https://github.com/webrecorder/browsertrix)
+
 ## Browsertrix 0.1.1
 
 Browsertrix is a web archiving automation system, desgined to create high-fidelity web archives
